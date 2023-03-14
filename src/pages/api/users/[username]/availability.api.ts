@@ -37,7 +37,7 @@ export default async function handle(
   const userAvailability = await prisma.userTimeInterval.findFirst({
     where: {
       user_id: user.id,
-      weed_day: referenceDate.get('day'),
+      week_day: referenceDate.get('day'),
     },
   })
 
@@ -68,9 +68,13 @@ export default async function handle(
   })
 
   const availableTimes = possibleTimes.filter((time) => {
-    return !blockedTimes.some(
+    const isTimeBlocked = blockedTimes.some(
       (blockedTime) => blockedTime.date.getHours() === time,
     )
+
+    const isTimeInPast = referenceDate.set('hour', time).isBefore(new Date())
+
+    return !isTimeBlocked && !isTimeInPast
   })
 
   return res.json({ possibleTimes, availableTimes })
